@@ -32,7 +32,7 @@ Thumbs.db
 
 # Generated outputs
 output/
-*.pkl
+
 *.csv
 testData/
 
