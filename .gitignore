@@ -1,0 +1,41 @@
+# Virtual Environments
+.venv/
+test_venv/
+env/
+venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large video files
+*.mp4
+*.avi
+*.mov
+*.mkv
+
+# Generated outputs
+output/
+*.pkl
+*.csv
+testData/
+
+# Temporary files
+*.tmp
+temp/
