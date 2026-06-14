@@ -240,7 +240,12 @@ def analyze_video(video_path):
     # -----------------------------------------
     
     cap.release()
-    cv2.destroyAllWindows()
+    # Safe cleanup for headless environments (Streamlit Cloud)
+    try:
+        if hasattr(cv2, "destroyAllWindows"):
+            cv2.destroyAllWindows()
+    except Exception:
+        pass
     
     # -----------------------------------------
     # CALCULATE METRICS
