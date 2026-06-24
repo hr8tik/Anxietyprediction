@@ -85,8 +85,6 @@ def analyze_video(video_path):
     previous_eye_distance = None
     head_movements = 0
     previous_face_center = None
-    hand_movements = 0
-    previous_hand_center = None
     body_movements = 0
     face_area_history = []
     
@@ -162,58 +160,7 @@ def analyze_video(video_path):
                 
                 previous_eye_distance = avg_eye_distance
         
-        # ---------------------------------
-        # HAND ANALYSIS (Skin Detection)
-        # ---------------------------------
-        
-        # Convert to HSV for skin detection
-        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-        
-        # Define skin color range in HSV
-        lower_skin = np.array([0, 20, 70], dtype=np.uint8)
-        upper_skin = np.array([20, 255, 255], dtype=np.uint8)
-        
-        # Create mask for skin detection
-        mask = cv2.inRange(hsv, lower_skin, upper_skin)
-        
-        # Also detect other skin tones
-        lower_skin2 = np.array([170, 20, 70], dtype=np.uint8)
-        upper_skin2 = np.array([180, 255, 255], dtype=np.uint8)
-        mask2 = cv2.inRange(hsv, lower_skin2, upper_skin2)
-        
-        # Combine masks
-        mask = cv2.bitwise_or(mask, mask2)
-        
-        # Apply morphological operations
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
-        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
-        
-        # Find contours
-        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        
-        # Filter hands by contour area
-        hands = []
-        for contour in contours:
-            area = cv2.contourArea(contour)
-            if 500 < area < 50000:  # Filter by reasonable hand size
-                x, y, w, h = cv2.boundingRect(contour)
-                hands.append((x, y, w, h))
-        
-        # Process detected hands
-        if len(hands) > 0:
-            # Get the largest hand
-            largest_hand = max(hands, key=lambda h: h[2] * h[3])
-            hx, hy, hw, hh = largest_hand
-            
-            hand_center = get_center(hx, hy, hw, hh)
-            
-            # HAND MOVEMENT
-            if previous_hand_center is not None:
-                movement = euclidean(hand_center, previous_hand_center)
-                if movement > 15:
-                    hand_movements += 1
-            
-            previous_hand_center = hand_center
+        # Hand detection removed — keeping only head/face/body metrics
         
         # ---------------------------------
         # BODY/FACIAL MOVEMENT (using face area variation)
@@ -281,7 +228,7 @@ def analyze_video(video_path):
         "Eye_Blinks": [eye_blinks],
         "Blink_Rate_Per_Minute": [blink_rate],
         "Head_Movements": [head_movements],
-        "Hand_Movements": [hand_movements],
+        # Hand movement metric removed
         "Body_Movements": [body_movements]
     })
     

@@ -52,7 +52,9 @@ if uploaded_file:
         with col2:
             st.subheader("🎯 Movement Counts")
             st.metric("Head Movements", int(results_df['Head_Movements'].values[0]))
-            st.metric("Hand Movements", int(results_df['Hand_Movements'].values[0]))
+            # Hand movements removed from analysis; skip display if absent
+            if 'Hand_Movements' in results_df.columns:
+                st.metric("Hand Movements", int(results_df['Hand_Movements'].values[0]))
             st.metric("Body Movements", int(results_df['Body_Movements'].values[0]))
         
         # Display full results table
@@ -65,17 +67,43 @@ if uploaded_file:
                 with open("anxiety_model.pkl", "rb") as f:
                     model = pickle.load(f)
                 
-                # Prepare features for prediction
-                features = results_df[[
+                # Prepare features for prediction; ensure required columns exist
+                candidate_features = [
                     "Eye_Blinks",
                     "Head_Movements",
                     "Hand_Movements",
                     "Body_Movements"
-                ]].values
-                
-                # Make prediction
-                anxiety_prediction = model.predict(features)[0]
-                prediction_proba = model.predict_proba(features)[0]
+                ]
+                available_features = [c for c in candidate_features if c in results_df.columns]
+
+                if not available_features:
+                    st.warning("Not enough features available for anxiety prediction.")
+                else:
+                    features = results_df[available_features].values
+
+                    # Ensure model input dimension matches; otherwise skip prediction
+                    try:
+                        expected = getattr(model, 'n_features_in_', None)
+                        if expected is not None and expected != features.shape[1]:
+                            st.warning(f"Model expects {expected} features but {features.shape[1]} available; skipping prediction.")
+                        else:
+                            anxiety_prediction = model.predict(features)[0]
+                            prediction_proba = model.predict_proba(features)[0]
+                            st.subheader("🧠 Anxiety Prediction")
+                            col1, col2 = st.columns(2)
+                            with col1:
+                                st.metric("Predicted Anxiety Level", f"{anxiety_prediction:.2f}")
+                            if len(prediction_proba) > 1:
+                                with col2:
+                                    st.metric("Confidence", f"{max(prediction_proba)*100:.1f}%")
+                            if anxiety_prediction < 0.33:
+                                st.success("✅ Low Anxiety Level")
+                            elif anxiety_prediction < 0.67:
+                                st.warning("⚠️ Moderate Anxiety Level")
+                            else:
+                                st.error("🔴 High Anxiety Level")
+                    except Exception as e:
+                        st.warning(f"Prediction failed: {e}")
                 
                 st.subheader("🧠 Anxiety Prediction")
                 
